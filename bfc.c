@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     char* ir_p = ir;
     char lastChar = ' ';
     int openLoops = 0;
+    char lastIo = ' ';
 
     for (i = 1; i < size + 1; i++) {
         char thisChar = contents[i];
@@ -69,8 +70,6 @@ int main(int argc, char** argv) {
         switch (thisChar) {
         case '[':
         case ']':
-        case '.':
-        case ',':
             if (is_squashable(lastChar)) {
                 if (count == 1) {
                     *(ir_p++) = lastChar;
@@ -84,6 +83,28 @@ int main(int argc, char** argv) {
 
             *(ir_p++) = thisChar;
             lastChar = thisChar;
+            break;
+        case '.':
+        case ',':
+            if (is_squashable(lastChar)) {
+                if (count == 1) {
+                    *(ir_p++) = lastChar;
+                    count = 0;
+                } else if (count > 0) {
+                    *(ir_p++) = get_squashed(lastChar);
+                    *(ir_p++) = count;
+                    count = 0;
+                }
+            }
+
+            if (lastIo == thisChar) {
+                *(ir_p++) = thisChar == '.' ? 'o' : 'i';
+            } else {
+                *(ir_p++) = thisChar;
+            }
+            
+            lastChar = thisChar;
+            lastIo = thisChar;
             break;
         case '+':
         case '-':
@@ -185,6 +206,12 @@ int main(int argc, char** argv) {
             break;
         case ',':
             fwrite("mov rsi,rbx\nmov rdi,0\nmov rax,0\nsyscall\n", 1, 40, outFile);
+            break;
+        case 'o':
+            fwrite("mov rsi,rbx\nsyscall\n", 1, 20, outFile);
+            break;
+        case 'i':
+            fwrite("mov rsi,rbx\nsyscall\n", 1, 20, outFile);
             break;
         }
     }
