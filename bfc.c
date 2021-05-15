@@ -160,23 +160,25 @@ int main(int argc, char** argv) {
             fwrite("dec rbx\n", 1, 8, outFile);
             break;
         case 'p':
-            fprintf(outFile, "add byte [rbx], %d\n", ir[++i]);
+            fprintf(outFile, "add byte [rbx],%d\n", ir[++i]);
             break;
         case 'm':
-            fprintf(outFile, "sub byte [rbx], %d\n", ir[++i]);
+            fprintf(outFile, "sub byte [rbx],%d\n", ir[++i]);
             break;
         case 'f':
-            fprintf(outFile, "add rbx, %d\n", ir[++i]);
+            fprintf(outFile, "add rbx,%d\n", ir[++i]);
             break;
         case 'b':
-            fprintf(outFile, "sub rbx, %d\n", ir[++i]);
+            fprintf(outFile, "sub rbx,%d\n", ir[++i]);
             break;
         case '[':
             *(stack_ptr++) = loop_n;
-            fprintf(outFile, ".l%ld:\n", loop_n++);
+            fprintf(outFile, ".l%ld:cmp byte [rbx], 0\nje .l%ldd\n", loop_n, loop_n);
+            loop_n++;
             break;
         case ']':
-            fprintf(outFile, "cmp byte [rbx], 0\njne .l%ld\n", *(stack_ptr--));
+            stack_ptr--;
+            fprintf(outFile, "jmp .l%ld\n.l%ldd:", *stack_ptr, *stack_ptr);
             break;
         case '.':
             fwrite("mov rsi,rbx\nmov rdi,1\nmov rax,1\nsyscall\n", 1, 40, outFile);
