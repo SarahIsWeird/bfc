@@ -23,3 +23,7 @@ ld -o myProgram myProgram.o
 ```
 
 Congratulations! You've just compiled brainfuck code!
+
+## Example program
+
+There's an example program included at example.bf, if you want to try out the compiler, but don't have any brainfuck code ready. It prints out a well-known text!
