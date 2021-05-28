@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __APPLE__
+# include "targets/mac_64.h"
+#endif
+#ifdef __linux__
+# include "targets/linux_x86_64.h"
+#endif
+
 #define CHUNK_SIZE 4096
-
-#define HEADER "section .data\nmem: times 10000 db 0\nsection .text\nglobal _start\n_start:\nlea rbx, [mem]\nmov rdx,1\n"
-#define HEADER_LEN 97
-
-#define FOOTER "xor rdi,rdi\nmov rax,60\nsyscall\n"
-#define FOOTER_LEN 31
 
 int is_squashable(char c) {
     return c == '+' || c == '-' || c == '>' || c == '<';
@@ -160,70 +161,20 @@ int main(int argc, char** argv) {
 
     size_t ir_size = ir_p - ir;
     FILE* outFile = fopen(argv[2], "w");
-    size_t *stack = malloc(sizeof(size_t) * 10000);
-    size_t *stack_ptr = stack;
-    size_t loop_n = 0;
-    
-    fwrite(HEADER, 1, HEADER_LEN, outFile);
 
-    for (i = 0; i < ir_size; i++) {
-        switch (ir[i]) {
-        case '+':
-            fwrite("inc byte [rbx]\n", 1, 15, outFile);
-            break;
-        case '-':
-            fwrite("dec byte [rbx]\n", 1, 15, outFile);
-            break;
-        case '>':
-            fwrite("inc rbx\n", 1, 8, outFile);
-            break;
-        case '<':
-            fwrite("dec rbx\n", 1, 8, outFile);
-            break;
-        case 'p':
-            fprintf(outFile, "add byte [rbx],%d\n", ir[++i]);
-            break;
-        case 'm':
-            fprintf(outFile, "sub byte [rbx],%d\n", ir[++i]);
-            break;
-        case 'f':
-            fprintf(outFile, "add rbx,%d\n", ir[++i]);
-            break;
-        case 'b':
-            fprintf(outFile, "sub rbx,%d\n", ir[++i]);
-            break;
-        case '[':
-            *(stack_ptr++) = loop_n;
-            fprintf(outFile, ".l%ld:cmp byte [rbx], 0\nje .l%ldd\n", loop_n, loop_n);
-            loop_n++;
-            break;
-        case ']':
-            stack_ptr--;
-            fprintf(outFile, "jmp .l%ld\n.l%ldd:", *stack_ptr, *stack_ptr);
-            break;
-        case '.':
-            fwrite("mov rsi,rbx\nmov rdi,1\nmov rax,1\nsyscall\n", 1, 40, outFile);
-            break;
-        case ',':
-            fwrite("mov rsi,rbx\nmov rdi,0\nmov rax,0\nsyscall\n", 1, 40, outFile);
-            break;
-        case 'o':
-            fwrite("mov rsi,rbx\nsyscall\n", 1, 20, outFile);
-            break;
-        case 'i':
-            fwrite("mov rsi,rbx\nsyscall\n", 1, 20, outFile);
-            break;
-        }
-    }
-
-
-    fwrite(FOOTER, 1, FOOTER_LEN, outFile);
+#ifdef __APPLE__
+    mac_64_init(ir, ir_size);
+    mac_64_write(file);
+#endif
+#ifdef __linux__
+    linux_x86_64_init(ir, ir_size);
+    linux_x86_64_write(file);
+#endif
 
     fclose(outFile);
 
     free(contents);
     free(ir);
-    free(stack);
 
     return 0;
 }
