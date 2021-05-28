@@ -7,4 +7,4 @@
 void mac_64_init(const char *ir, size_t ir_size);
 void mac_64_write(FILE *file);
 
-#endif // BFC_TARGET_MAC_64_H
+#endif /* BFC_TARGET_MAC_64_H */
