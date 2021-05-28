@@ -1,6 +1,6 @@
 # bfc 🤯
 
-bfc is a Brainfuck compiler. Currently, it doesn't directly compile to an executable format, but rather to Linux x86_64 NASM. Directly compiling to a binary format and other targets is planned for the near future.
+bfc is a Brainfuck compiler. Currently, it doesn't directly compile to an executable format, but rather to NASM. Directly compiling to a binary format is planned for the near future.
 
 ## Building
 
